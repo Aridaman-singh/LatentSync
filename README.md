@@ -191,3 +191,101 @@ You can evaluate the accuracy of SyncNet on a dataset by running the following s
 - Some code are borrowed from [MuseTalk](https://github.com/TMElyralab/MuseTalk), [StyleSync](https://github.com/guanjz20/StyleSync), [SyncNet](https://github.com/joonson/syncnet_python), [Wav2Lip](https://github.com/Rudrabha/Wav2Lip).
 
 Thanks for their generous contributions to the open-source community.
+
+🚀 Enhancements in This Fork
+
+This fork of LatentSync introduces superresolution as an optional post-processing step to enhance the generated lipsynced region. The enhancements include:
+
+Superresolution using GFPGAN and CodeFormer to improve generated facial details.
+
+Region-based enhancement, applying superresolution only to the modified portion of the frame.
+
+Automatic resolution ratio calculation, ensuring superresolution is applied only if the generated region has lower resolution than the original.
+
+📌 How the Superresolution Pipeline Works
+
+1️⃣ Extract Frames from Input and Generated Videos
+
+Before applying superresolution, frames are extracted from both the original video and the generated lipsynced video:
+
+python scripts/extract_frames.py
+
+This creates:
+
+frames/original/ → Frames from the input video.
+
+frames/generated/ → Frames from the generated lipsynced video.
+
+2️⃣ Generate Mask for Modified Regions
+
+A mask video (mask_video.mp4) is generated to detect which parts of the face were altered during lipsyncing. The mask helps apply superresolution only to necessary regions.
+
+python scripts/generate_mask.py
+
+This outputs:
+
+frames/mask/ → Binary images highlighting modified areas.
+
+3️⃣ Compute Resolution Ratio
+
+The script compares the resolution of the modified region in both the original and generated frames:
+
+python scripts/compare_resolution.py
+
+If the generated region has lower resolution, superresolution is applied.
+
+🚀 Running Inference with Superresolution
+
+1️⃣ Install Dependencies
+
+Ensure all required packages are installed:
+
+pip install -r requirements.txt
+
+2️⃣ Run Inference with Optional Superresolution
+
+bash inference.sh GFPGAN      # Use GFPGAN for superresolution
+bash inference.sh CodeFormer  # Use CodeFormer for superresolution
+bash inference.sh None        # Run without superresolution
+
+3️⃣ Output
+
+The final enhanced video is saved as video_out.mp4.
+
+If superresolution is applied, it enhances only the modified region (e.g., lips).
+
+📑 Open-source Plan
+
+
+
+🔧 Setting up the Environment
+
+Install the required packages:
+
+source setup_env.sh
+
+Ensure all dependencies, including gfpgan and basicsr, are installed.
+
+🔄 Summary of Modifications in This Fork
+
+Superresolution Integration:
+
+Added --superres argument to inference.sh and inference.py.
+
+Supports GFPGAN and CodeFormer for facial enhancement.
+
+Superresolution is applied only if needed, based on resolution comparison.
+
+Mask-based Region Detection:
+
+Extracted frames and generated a mask video (mask_video.mp4).
+
+Mask helps apply superresolution only to modified regions.
+
+Updated Pipeline Documentation:
+
+Added clear instructions to run inference with optional superresolution.
+
+Ensured backward compatibility (users can run inference with or without superresolution).
+
+This modification improves output quality while keeping the workflow efficient and optimized. 🚀

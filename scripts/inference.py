@@ -21,6 +21,8 @@ from latentsync.pipelines.lipsync_pipeline import LipsyncPipeline
 from diffusers.utils.import_utils import is_xformers_available
 from accelerate.utils import set_seed
 from latentsync.whisper.audio2feature import Audio2Feature
+from scripts.superres import process_frame_with_superres
+import cv2
 
 
 def main(config, args):
@@ -73,6 +75,8 @@ def main(config, args):
 
     print(f"Initial seed: {torch.initial_seed()}")
 
+    num_frames = config.data.num_frames  
+
     pipeline(
         video_path=args.video_path,
         audio_path=args.audio_path,
@@ -86,6 +90,19 @@ def main(config, args):
         height=config.data.resolution,
     )
 
+    #Apply Superresolution 
+    if args.superres != "None":
+        print(f"Applying {args.superres} Superresolution on Generated Frames...")
+
+        for i in range(num_frames):
+            orig_frame = f"frames/original/frame_{i:04d}.png"
+            gen_frame = f"frames/generated/frame_{i:04d}.png"
+            mask_frame = f"frames/mask/frame_{i:04d}.png"
+
+            enhanced_frame = process_frame_with_superres(orig_frame, gen_frame, mask_frame, args.superres)
+
+            cv2.imwrite(gen_frame, enhanced_frame)  # Save enhanced frame
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -97,6 +114,10 @@ if __name__ == "__main__":
     parser.add_argument("--inference_steps", type=int, default=20)
     parser.add_argument("--guidance_scale", type=float, default=1.0)
     parser.add_argument("--seed", type=int, default=1247)
+    # adding the new superres argument.
+    parser.add_argument("--superres", type=str, default="None", choices=["GFPGAN", "CodeFormer", "None"],
+                    help="Choose superresolution method: GFPGAN or CodeFormer. Default is None.")
+
     args = parser.parse_args()
 
     config = OmegaConf.load(args.unet_config_path)
